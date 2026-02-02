@@ -108,6 +108,7 @@ class CVBasicInfo(BaseModel):
     panggilan: str
     peran: str
     bio: str
+    about: str
 
 
 class CVSkill(BaseModel):
@@ -124,6 +125,18 @@ class CVProject(BaseModel):
     tags: list
     status: str
     link: str
+
+
+class CVBasicUpdate(CVBasicInfo):
+    password: str
+
+
+class CVSkillUpdate(CVSkill):
+    password: str
+
+
+class CVProjectUpdate(CVProject):
+    password: str
 
 
 # Resend configuration
@@ -433,19 +446,20 @@ async def get_cv_data():
 
 
 @app.put("/api/admin/cv/basic", tags=["Admin"])
-async def update_cv_basic(auth: AdminAuthRequest, info: CVBasicInfo):
+async def update_cv_basic(payload: CVBasicUpdate):
     """Update CV basic information"""
-    if auth.password != ADMIN_PASSWORD:
+    if payload.password != ADMIN_PASSWORD:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password"
         )
     
     data = load_cv_data()
-    data["nama"] = info.nama
-    data["panggilan"] = info.panggilan
-    data["peran"] = info.peran
-    data["bio"] = info.bio
+    data["nama"] = payload.nama
+    data["panggilan"] = payload.panggilan
+    data["peran"] = payload.peran
+    data["bio"] = payload.bio
+    data["about"] = payload.about
     
     if save_cv_data(data):
         return {"success": True, "message": "CV basic info updated"}
@@ -457,9 +471,9 @@ async def update_cv_basic(auth: AdminAuthRequest, info: CVBasicInfo):
 
 
 @app.put("/api/admin/cv/skill/{skill_name}", tags=["Admin"])
-async def update_cv_skill(auth: AdminAuthRequest, skill_name: str, skill: CVSkill):
+async def update_cv_skill(skill_name: str, payload: CVSkillUpdate):
     """Update CV skill"""
-    if auth.password != ADMIN_PASSWORD:
+    if payload.password != ADMIN_PASSWORD:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password"
@@ -471,12 +485,12 @@ async def update_cv_skill(auth: AdminAuthRequest, skill_name: str, skill: CVSkil
     updated = False
     for s in skills:
         if s["name"] == skill_name:
-            s.update(skill.dict())
+            s.update(payload.dict(exclude={"password"}))
             updated = True
             break
     
     if not updated:
-        skills.append(skill.dict())
+        skills.append(payload.dict(exclude={"password"}))
     
     data["skills"] = skills
     
@@ -511,9 +525,9 @@ async def delete_cv_skill(auth: AdminAuthRequest, skill_name: str):
 
 
 @app.post("/api/admin/cv/project", tags=["Admin"])
-async def add_cv_project(auth: AdminAuthRequest, project: CVProject):
+async def add_cv_project(payload: CVProjectUpdate):
     """Add new CV project"""
-    if auth.password != ADMIN_PASSWORD:
+    if payload.password != ADMIN_PASSWORD:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password"
@@ -521,11 +535,11 @@ async def add_cv_project(auth: AdminAuthRequest, project: CVProject):
     
     data = load_cv_data()
     projects = data.get("projects", [])
-    projects.append(project.dict())
+    projects.append(payload.dict(exclude={"password"}))
     data["projects"] = projects
     
     if save_cv_data(data):
-        return {"success": True, "message": "Project added", "project": project.dict()}
+        return {"success": True, "message": "Project added", "project": payload.dict(exclude={"password"})}
     
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -534,9 +548,9 @@ async def add_cv_project(auth: AdminAuthRequest, project: CVProject):
 
 
 @app.put("/api/admin/cv/project/{project_title}", tags=["Admin"])
-async def update_cv_project(auth: AdminAuthRequest, project_title: str, project: CVProject):
+async def update_cv_project(project_title: str, payload: CVProjectUpdate):
     """Update CV project"""
-    if auth.password != ADMIN_PASSWORD:
+    if payload.password != ADMIN_PASSWORD:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid password"
@@ -548,7 +562,7 @@ async def update_cv_project(auth: AdminAuthRequest, project_title: str, project:
     updated = False
     for p in projects:
         if p["title"] == project_title:
-            p.update(project.dict())
+            p.update(payload.dict(exclude={"password"}))
             updated = True
             break
     

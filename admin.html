@@ -298,6 +298,10 @@
                     <label>Bio</label>
                     <textarea id="bio" placeholder="Your bio"></textarea>
                 </div>
+                <div class="form-group">
+                    <label>About Me</label>
+                    <textarea id="about" placeholder="About me (gunakan paragraf baru dengan baris kosong)"></textarea>
+                </div>
                 <button class="btn" onclick="updateBasicInfo()">Save Basic Info</button>
             </div>
 
@@ -444,6 +448,7 @@
                     document.getElementById('panggilan').value = data.panggilan || '';
                     document.getElementById('peran').value = data.peran || '';
                     document.getElementById('bio').value = data.bio || '';
+                    document.getElementById('about').value = data.about || '';
                     
                     renderSkills(data.skills || []);
                     renderProjects(data.projects || []);
@@ -468,7 +473,8 @@
                         nama: document.getElementById('nama').value,
                         panggilan: document.getElementById('panggilan').value,
                         peran: document.getElementById('peran').value,
-                        bio: document.getElementById('bio').value
+                        bio: document.getElementById('bio').value,
+                        about: document.getElementById('about').value
                     })
                 });
 
@@ -632,8 +638,13 @@
 
                 const tags = document.getElementById('projectTags').value.split(',').map(t => t.trim());
 
-                const res = await fetch(`${API_BASE}/admin/cv/project`, {
-                    method: 'POST',
+                const isEditing = Boolean(currentEditingProject);
+                const endpoint = isEditing
+                    ? `${API_BASE}/admin/cv/project/${encodeURIComponent(currentEditingProject)}`
+                    : `${API_BASE}/admin/cv/project`;
+
+                const res = await fetch(endpoint, {
+                    method: isEditing ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         password: adminPassword,

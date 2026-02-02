@@ -82,6 +82,19 @@ async function loadData() {
         if (data.bio) {
             document.getElementById('heroBio').textContent = data.bio;
         }
+
+        // Update About section
+        if (data.about) {
+            const [intro, body] = String(data.about).split("\n\n");
+            const aboutIntro = document.getElementById('aboutIntro');
+            const aboutBody = document.getElementById('aboutBody');
+            if (aboutIntro) {
+                aboutIntro.textContent = intro || '';
+            }
+            if (aboutBody) {
+                aboutBody.textContent = body || '';
+            }
+        }
         
         // Update contact info
         if (data.kontak) {

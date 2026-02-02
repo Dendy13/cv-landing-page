@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 import logging
 import os
 import requests
+import json
+from pathlib import Path
 
 # Load environment variables
 load_dotenv()
@@ -95,10 +97,65 @@ class ContactResponse(BaseModel):
     timestamp: str
 
 
+class AdminAuthRequest(BaseModel):
+    password: str
+
+
+# Admin Models
+class CVBasicInfo(BaseModel):
+    nama: str
+    panggilan: str
+    peran: str
+    bio: str
+
+
+class CVSkill(BaseModel):
+    icon: str
+    name: str
+    description: str
+    level: int
+
+
+class CVProject(BaseModel):
+    icon: str
+    title: str
+    description: str
+    tags: list
+    status: str
+    link: str
+
+
 # Resend configuration
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")
 TO_EMAIL = os.getenv("TO_EMAIL")
+
+# Admin configuration
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+DATA_FILE = Path(__file__).parent.parent / "data.json"
+
+
+def load_cv_data() -> dict:
+    """Load CV data from JSON file"""
+    try:
+        if DATA_FILE.exists():
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        logger.error(f"Error loading data: {str(e)}")
+    return {}
+
+
+def save_cv_data(data: dict) -> bool:
+    """Save CV data to JSON file"""
+    try:
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        logger.info("✅ CV data saved successfully")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Error saving data: {str(e)}")
+        return False
 
 
 def send_email(contact_data: ContactFormRequest) -> bool:
@@ -270,6 +327,193 @@ async def get_api_stats():
 async def preflight_handler(full_path: str):
     """Handle CORS preflight requests"""
     return {"status": "ok"}
+
+
+# Admin endpoints
+@app.post("/api/admin/auth", tags=["Admin"])
+async def admin_auth(auth: AdminAuthRequest):
+    """Authenticate admin"""
+    if auth.password == ADMIN_PASSWORD:
+        logger.info("✅ Admin authenticated")
+        return {"authenticated": True, "message": "Authentication successful"}
+    
+    logger.warning("❌ Invalid admin password attempt")
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid password"
+    )
+
+
+@app.get("/api/admin/cv", tags=["Admin"])
+async def get_cv_data():
+    """Get CV data for editing"""
+    data = load_cv_data()
+    if not data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="CV data not found"
+        )
+    return data
+
+
+@app.put("/api/admin/cv/basic", tags=["Admin"])
+async def update_cv_basic(auth: AdminAuthRequest, info: CVBasicInfo):
+    """Update CV basic information"""
+    if auth.password != ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password"
+        )
+    
+    data = load_cv_data()
+    data["nama"] = info.nama
+    data["panggilan"] = info.panggilan
+    data["peran"] = info.peran
+    data["bio"] = info.bio
+    
+    if save_cv_data(data):
+        return {"success": True, "message": "CV basic info updated"}
+    
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to save data"
+    )
+
+
+@app.put("/api/admin/cv/skill/{skill_name}", tags=["Admin"])
+async def update_cv_skill(auth: AdminAuthRequest, skill_name: str, skill: CVSkill):
+    """Update CV skill"""
+    if auth.password != ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password"
+        )
+    
+    data = load_cv_data()
+    skills = data.get("skills", [])
+    
+    # Update existing skill or add new
+    updated = False
+    for s in skills:
+        if s["name"] == skill_name:
+            s.update(skill.dict())
+            updated = True
+            break
+    
+    if not updated:
+        skills.append(skill.dict())
+    
+    data["skills"] = skills
+    
+    if save_cv_data(data):
+        return {"success": True, "message": f"Skill '{skill_name}' updated"}
+    
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to save data"
+    )
+
+
+@app.delete("/api/admin/cv/skill/{skill_name}", tags=["Admin"])
+async def delete_cv_skill(auth: AdminAuthRequest, skill_name: str):
+    """Delete CV skill"""
+    if auth.password != ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password"
+        )
+    
+    data = load_cv_data()
+    data["skills"] = [s for s in data.get("skills", []) if s["name"] != skill_name]
+    
+    if save_cv_data(data):
+        return {"success": True, "message": f"Skill '{skill_name}' deleted"}
+    
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to save data"
+    )
+
+
+@app.post("/api/admin/cv/project", tags=["Admin"])
+async def add_cv_project(auth: AdminAuthRequest, project: CVProject):
+    """Add new CV project"""
+    if auth.password != ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password"
+        )
+    
+    data = load_cv_data()
+    projects = data.get("projects", [])
+    projects.append(project.dict())
+    data["projects"] = projects
+    
+    if save_cv_data(data):
+        return {"success": True, "message": "Project added", "project": project.dict()}
+    
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to save data"
+    )
+
+
+@app.put("/api/admin/cv/project/{project_title}", tags=["Admin"])
+async def update_cv_project(auth: AdminAuthRequest, project_title: str, project: CVProject):
+    """Update CV project"""
+    if auth.password != ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password"
+        )
+    
+    data = load_cv_data()
+    projects = data.get("projects", [])
+    
+    updated = False
+    for p in projects:
+        if p["title"] == project_title:
+            p.update(project.dict())
+            updated = True
+            break
+    
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project '{project_title}' not found"
+        )
+    
+    data["projects"] = projects
+    
+    if save_cv_data(data):
+        return {"success": True, "message": f"Project '{project_title}' updated"}
+    
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to save data"
+    )
+
+
+@app.delete("/api/admin/cv/project/{project_title}", tags=["Admin"])
+async def delete_cv_project(auth: AdminAuthRequest, project_title: str):
+    """Delete CV project"""
+    if auth.password != ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password"
+        )
+    
+    data = load_cv_data()
+    data["projects"] = [p for p in data.get("projects", []) if p["title"] != project_title]
+    
+    if save_cv_data(data):
+        return {"success": True, "message": f"Project '{project_title}' deleted"}
+    
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to save data"
+    )
+
 
 
 # Error handlers

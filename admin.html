@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .login-form {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+        }
+
+        .login-form h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #666;
+            margin-left: 10px;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .admin-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .panel-title {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #666;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .skill-item,
+        .project-item {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .skill-name,
+        .project-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .skill-level {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .msg {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .msg.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .msg.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .msg.active {
+            display: block;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            color: #333;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .add-new-btn {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .skill-item,
+            .project-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .item-actions {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div id="loginForm" class="login-form">
+            <h1>🔐 Admin Login</h1>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password">
+            </div>
+            <button class="btn" onclick="adminLogin()">Login</button>
+        </div>
+
+        <!-- Admin Panel (hidden by default) -->
+        <div id="adminPanel" style="display: none;">
+            <header>
+                <h1>📝 CV Admin Panel</h1>
+                <button class="logout-btn" onclick="adminLogout()">Logout</button>
+            </header>
+
+            <div id="message" class="msg"></div>
+
+            <!-- Basic Info -->
+            <div class="admin-panel">
+                <h2 class="panel-title">👤 Basic Information</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="nama" placeholder="Your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Nickname</label>
+                        <input type="text" id="panggilan" placeholder="Nickname">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Role/Title</label>
+                    <input type="text" id="peran" placeholder="Your role">
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="bio" placeholder="Your bio"></textarea>
+                </div>
+                <button class="btn" onclick="updateBasicInfo()">Save Basic Info</button>
+            </div>
+
+            <!-- Skills & Projects Tabs -->
+            <div class="admin-panel">
+                <h2 class="panel-title">🎯 Skills & Projects</h2>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('skills')">Skills</button>
+                    <button class="tab-btn" onclick="switchTab('projects')">Projects</button>
+                </div>
+
+                <!-- Skills Tab -->
+                <div id="skills" class="tab-content active">
+                    <button class="btn add-new-btn" onclick="toggleSkillForm()">+ Add New Skill</button>
+                    
+                    <div id="skillForm" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Icon (emoji)</label>
+                                <input type="text" id="skillIcon" placeholder="e.g., 🐍">
+                            </div>
+                            <div class="form-group">
+                                <label>Skill Name</label>
+                                <input type="text" id="skillName" placeholder="e.g., Python">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="skillDesc" placeholder="Describe the skill"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Level (0-100)</label>
+                            <input type="number" id="skillLevel" min="0" max="100" value="80">
+                        </div>
+                        <button class="btn" onclick="addSkill()">Add Skill</button>
+                        <button class="btn btn-secondary" onclick="toggleSkillForm()">Cancel</button>
+                    </div>
+
+                    <div id="skillsList"></div>
+                </div>
+
+                <!-- Projects Tab -->
+                <div id="projects" class="tab-content">
+                    <button class="btn add-new-btn" onclick="toggleProjectForm()">+ Add New Project</button>
+                    
+                    <div id="projectForm" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Icon (emoji)</label>
+                                <input type="text" id="projectIcon" placeholder="e.g., 🛒">
+                            </div>
+                            <div class="form-group">
+                                <label>Project Title</label>
+                                <input type="text" id="projectTitle" placeholder="Project title">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="projectDesc" placeholder="Describe the project"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tags (comma separated)</label>
+                                <input type="text" id="projectTags" placeholder="Python, FastAPI, Web">
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <input type="text" id="projectStatus" placeholder="e.g., Production, 70% Complete">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Project Link</label>
+                            <input type="text" id="projectLink" placeholder="https://...">
+                        </div>
+                        <button class="btn" onclick="addProject()">Add Project</button>
+                        <button class="btn btn-secondary" onclick="toggleProjectForm()">Cancel</button>
+                    </div>
+
+                    <div id="projectsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://cv-landing-page-production-029a.up.railway.app/api';
+        let adminPassword = '';
+
+        function showMessage(msg, type = 'success') {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = msg;
+            msgEl.className = `msg active ${type}`;
+            setTimeout(() => msgEl.classList.remove('active'), 3000);
+        }
+
+        async function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            if (!password) {
+                showMessage('Please enter password', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (res.ok) {
+                    adminPassword = password;
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    loadCVData();
+                    showMessage('Login successful!', 'success');
+                } else {
+                    showMessage('Invalid password', 'error');
+                }
+            } catch (error) {
+                showMessage('Login error: ' + error.message, 'error');
+            }
+        }
+
+        function adminLogout() {
+            adminPassword = '';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        async function loadCVData() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/cv`);
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('nama').value = data.nama || '';
+                    document.getElementById('panggilan').value = data.panggilan || '';
+                    document.getElementById('peran').value = data.peran || '';
+                    document.getElementById('bio').value = data.bio || '';
+                    
+                    renderSkills(data.skills || []);
+                    renderProjects(data.projects || []);
+                }
+            } catch (error) {
+                showMessage('Error loading data: ' + error.message, 'error');
+            }
+        }
+
+        async function updateBasicInfo() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/cv/basic`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: adminPassword,
+                        nama: document.getElementById('nama').value,
+                        panggilan: document.getElementById('panggilan').value,
+                        peran: document.getElementById('peran').value,
+                        bio: document.getElementById('bio').value
+                    })
+                });
+
+                if (res.ok) {
+                    showMessage('Basic info updated successfully!', 'success');
+                    loadCVData();
+                } else {
+                    showMessage('Failed to update', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function addSkill() {
+            try {
+                const skillName = document.getElementById('skillName').value;
+                if (!skillName) {
+                    showMessage('Please enter skill name', 'error');
+                    return;
+                }
+
+                const res = await fetch(`${API_BASE}/admin/cv/skill/${skillName}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: adminPassword,
+                        icon: document.getElementById('skillIcon').value,
+                        name: skillName,
+                        description: document.getElementById('skillDesc').value,
+                        level: parseInt(document.getElementById('skillLevel').value)
+                    })
+                });
+
+                if (res.ok) {
+                    showMessage('Skill added!', 'success');
+                    toggleSkillForm();
+                    loadCVData();
+                } else {
+                    showMessage('Failed to add skill', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteSkill(skillName) {
+            if (!confirm(`Delete skill "${skillName}"?`)) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/cv/skill/${skillName}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
+                });
+
+                if (res.ok) {
+                    showMessage('Skill deleted!', 'success');
+                    loadCVData();
+                } else {
+                    showMessage('Failed to delete skill', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        function renderSkills(skills) {
+            const list = document.getElementById('skillsList');
+            list.innerHTML = skills.map(skill => `
+                <div class="skill-item">
+                    <div>
+                        <span style="font-size: 24px; margin-right: 10px;">${skill.icon}</span>
+                        <span class="skill-name">${skill.name}</span>
+                        <span class="skill-level" style="margin-left: 20px;">${skill.level}%</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-danger" onclick="deleteSkill('${skill.name}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addProject() {
+            try {
+                const projectTitle = document.getElementById('projectTitle').value;
+                if (!projectTitle) {
+                    showMessage('Please enter project title', 'error');
+                    return;
+                }
+
+                const tags = document.getElementById('projectTags').value.split(',').map(t => t.trim());
+
+                const res = await fetch(`${API_BASE}/admin/cv/project`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: adminPassword,
+                        icon: document.getElementById('projectIcon').value,
+                        title: projectTitle,
+                        description: document.getElementById('projectDesc').value,
+                        tags: tags,
+                        status: document.getElementById('projectStatus').value,
+                        link: document.getElementById('projectLink').value
+                    })
+                });
+
+                if (res.ok) {
+                    showMessage('Project added!', 'success');
+                    toggleProjectForm();
+                    loadCVData();
+                } else {
+                    showMessage('Failed to add project', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteProject(projectTitle) {
+            if (!confirm(`Delete project "${projectTitle}"?`)) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/cv/project/${projectTitle}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
+                });
+
+                if (res.ok) {
+                    showMessage('Project deleted!', 'success');
+                    loadCVData();
+                } else {
+                    showMessage('Failed to delete project', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        function renderProjects(projects) {
+            const list = document.getElementById('projectsList');
+            list.innerHTML = projects.map(project => `
+                <div class="project-item">
+                    <div>
+                        <span style="font-size: 24px; margin-right: 10px;">${project.icon}</span>
+                        <span class="project-title">${project.title}</span>
+                        <span style="margin-left: 20px; color: #667eea; font-weight: bold;">${project.status}</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-danger" onclick="deleteProject('${project.title}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function toggleSkillForm() {
+            document.getElementById('skillForm').style.display = 
+                document.getElementById('skillForm').style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleProjectForm() {
+            document.getElementById('projectForm').style.display = 
+                document.getElementById('projectForm').style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

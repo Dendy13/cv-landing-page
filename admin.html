@@ -269,7 +269,10 @@
         <div id="adminPanel" style="display: none;">
             <header>
                 <h1>📝 CV Admin Panel</h1>
-                <button class="logout-btn" onclick="adminLogout()">Logout</button>
+                <div>
+                    <button class="btn btn-success" style="margin-right: 10px;" onclick="loadCVData()">↻ Reload</button>
+                    <button class="logout-btn" onclick="adminLogout()">Logout</button>
+                </div>
             </header>
 
             <div id="message" class="msg"></div>
@@ -430,9 +433,13 @@
 
         async function loadCVData() {
             try {
+                console.log('Loading CV data from:', `${API_BASE}/admin/cv`);
                 const res = await fetch(`${API_BASE}/admin/cv`);
+                
                 if (res.ok) {
                     const data = await res.json();
+                    console.log('CV data loaded:', data);
+                    
                     document.getElementById('nama').value = data.nama || '';
                     document.getElementById('panggilan').value = data.panggilan || '';
                     document.getElementById('peran').value = data.peran || '';
@@ -440,8 +447,13 @@
                     
                     renderSkills(data.skills || []);
                     renderProjects(data.projects || []);
+                    showMessage('Data loaded successfully!', 'success');
+                } else {
+                    console.error('API Error:', res.status, res.statusText);
+                    showMessage('Failed to load data (Status: ' + res.status + ')', 'error');
                 }
             } catch (error) {
+                console.error('Fetch error:', error);
                 showMessage('Error loading data: ' + error.message, 'error');
             }
         }

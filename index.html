@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dendy Fajar Kurniawan - Python Scraper & Web Developer. Spesialis automasi data, web scraping, dan pengembangan backend modern.">
+    <meta name="keywords" content="Python, Web Scraping, FastAPI, Playwright, Linux, Web Developer, Data Engineering">
+    <meta name="author" content="Dendy Fajar Kurniawan">
+    <meta name="theme-color" content="#0ff0ff">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dendyfajar.com/">
+    <meta property="og:title" content="Dendy Fajar Kurniawan - Python Developer & Data Scraper">
+    <meta property="og:description" content="Expert dalam Python, web scraping, dan automasi data. Check out my projects dan services.">
+    <meta property="og:image" content="https://dendyfajar.com/og-image.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://dendyfajar.com/">
+    <meta name="twitter:title" content="Dendy Fajar Kurniawan - Python Developer & Data Scraper">
+    <meta name="twitter:description" content="Expert dalam Python, web scraping, dan automasi data.">
+    <meta name="twitter:image" content="https://dendyfajar.com/og-image.png">
+    
+    <title>Dendy - Python Scraper & Web Developer</title>
+    <link rel="canonical" href="https://dendyfajar.com/">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Font Optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Dendy Fajar Kurniawan",
+      "url": "https://dendyfajar.com",
+      "image": "https://dendyfajar.com/profile.png",
+      "sameAs": [
+        "https://github.com/Dendy13",
+        "https://linkedin.com/",
+        "https://fiverr.com/username"
+      ],
+      "jobTitle": "Python Developer & Data Scraper",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "Freelance"
+      }
+    }
+    </script>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home" class="nav-link active" data-section="home">Home</a></li>
+                <li><a href="#about" class="nav-link" data-section="about">About</a></li>
+                <li><a href="#skills" class="nav-link" data-section="skills">Skills</a></li>
+                <li><a href="#projects" class="nav-link" data-section="projects">Projects</a></li>
+                <li><a href="#contact" class="nav-link" data-section="contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-tag">// DEVELOPER & DATA SCRAPER</div>
+            <h1 class="hero-title">
+                <span class="title-line" id="heroName">DENDY FAJAR K.</span>
+                <span class="title-subtitle" id="heroRole">Python Scraper & Web Developer</span>
+            </h1>
+            <p class="hero-description" id="heroBio">
+                Spesialis automasi data dan pengembangan web berbasis Linux. 
+                Fokus pada efisiensi, akurasi data, dan solusi yang scalable.
+            </p>
+            <div class="hero-cta">
+                <a href="#projects" class="btn btn-primary">View Projects</a>
+                <a href="#contact" class="btn btn-secondary">Get in Touch</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number" data-target="5">0</div>
+                    <div class="stat-label">Projects</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="50">0</div>
+                    <div class="stat-label">Data Sources</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="1">0</div>
+                    <div class="stat-label">Years Experience</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="code-window">
+                <div class="window-header">
+                    <span class="window-dot red"></span>
+                    <span class="window-dot yellow"></span>
+                    <span class="window-dot green"></span>
+                </div>
+                <div class="code-content">
+                    <pre><code><span class="code-keyword">import</span> <span class="code-module">requests</span>
+<span class="code-keyword">from</span> <span class="code-module">bs4</span> <span class="code-keyword">import</span> BeautifulSoup
+
+<span class="code-keyword">def</span> <span class="code-function">scrape_data</span>(url):
+    response = requests.<span class="code-function">get</span>(url)
+    soup = BeautifulSoup(response.text)
+    <span class="code-keyword">return</span> soup.<span class="code-function">find_all</span>(<span class="code-string">'div'</span>)
+
+<span class="code-comment"># Magic happens here ✨</span></code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">// WHO AM I</span>
+                <h2 class="section-title">About Me</h2>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <p class="about-intro">
+                        Saya adalah <strong>Dendy Fajar Kurniawan</strong>, seorang <strong>Python Developer</strong> 
+                        yang berspesialisasi dalam <strong>Web Scraping</strong> dan <strong>Automasi Data</strong>. 
+                        Menggunakan Linux Mint sebagai daily driver untuk development environment yang optimal.
+                    </p>
+                    <p>
+                        Dengan keahlian dalam Playwright, FastAPI, dan Python automation, saya fokus membangun 
+                        solusi yang efisien dan scalable. Setiap project dirancang dengan perhatian pada 
+                        akurasi data, performa, dan maintainability.
+                    </p>
+                    <div class="about-highlights">
+                        <div class="highlight-item">
+                            <span class="highlight-icon">⚡</span>
+                            <span class="highlight-text">Fast & Efficient Scraping</span>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">🐧</span>
+                            <span class="highlight-text">Linux-Based Development</span>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">🚀</span>
+                            <span class="highlight-text">Scalable Solutions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">// TECH STACK</span>
+                <h2 class="section-title">Skills & Technologies</h2>
+            </div>
+            <div class="skills-grid" id="skillsGrid">
+                <!-- Skills akan di-load dari data.json -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="projects">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">// PORTFOLIO</span>
+                <h2 class="section-title">Featured Projects</h2>
+            </div>
+            <div class="projects-grid" id="projectsGrid">
+                <!-- Projects akan di-load dari data.json -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">// LET'S CONNECT</span>
+                <h2 class="section-title">Get In Touch</h2>
+            </div>
+<div class="contact-content">
+    <div class="contact-info">
+        <h3 class="contact-subtitle">Ready to collaborate?</h3>
+        <p class="contact-description">
+            Saya selalu terbuka untuk proyek baru, kolaborasi, atau sekadar diskusi 
+            tentang teknologi dan data scraping.
+        </p>
+        <div class="contact-methods">
+            <a href="mailto:emailmu@example.com" class="contact-method" id="contactEmail">
+                <span class="method-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EA4335" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                </span>
+                <div class="method-details">
+                    <div class="method-label">Email</div>
+                    <div class="method-value">emailmu@example.com</div>
+                </div>
+            </a>
+            <a href="https://github.com/username" target="_blank" class="contact-method" id="contactGithub">
+                <span class="method-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#fff">
+                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </span>
+                <div class="method-details">
+                    <div class="method-label">GitHub</div>
+                    <div class="method-value">github.com/username</div>
+                </div>
+            </a>
+                  <a href="https://fiverr.com/username" target="_blank" class="contact-method" id="contactFiverr">
+                     <span class="method-icon">
+                       <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/fiverr-icon.png" alt="Fiverr" width="32" height="32">
+                   </span>
+                     <div class="method-details">
+                      <div class="method-label">Fiverr</div>
+                      <div class="method-value">fiverr.com/username</div>
+                    </div>
+            </a>
+            <a href="https://linkedin.com/in/username" target="_blank" class="contact-method" id="contactLinkedin">
+                <span class="method-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#0A66C2">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </span>
+                <div class="method-details">
+                    <div class="method-label">LinkedIn</div>
+                    <div class="method-value">linkedin.com/in/username</div>
+                </div>
+            </a>
+        </div>
+    </div>
+                <div class="contact-form-wrapper">
+                    <form class="contact-form" id="contactForm">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Nama</label>
+                            <input type="text" id="name" name="name" class="form-input" required>
+                            <span class="form-border"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-input" required>
+                            <span class="form-border"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject" class="form-label">Subjek</label>
+                            <input type="text" id="subject" name="subject" class="form-input" required>
+                            <span class="form-border"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="message" class="form-label">Pesan</label>
+                            <textarea id="message" name="message" class="form-input form-textarea" rows="5" required></textarea>
+                            <span class="form-border"></span>
+                        </div>
+                        <button type="submit" class="btn btn-submit">
+                            <span class="btn-text">Kirim Pesan</span>
+                            <span class="btn-loader"></span>
+                        </button>
+                        <div class="form-status" id="formStatus"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-text">
+                    &copy; 2026 Dendy Fajar Kurniawan. Built with <span class="footer-heart">❤️</span> and Python.
+                </p>
+                <div class="footer-links">
+                    <a href="#home" class="footer-link">Back to Top ↑</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

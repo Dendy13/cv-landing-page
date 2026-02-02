@@ -1,0 +1,36 @@
+# Python
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.Python
+backend/venv/
+backend/env/
+backend/.venv/
+
+# Environment variables
+backend/.env
+*.env
+!backend/.env.example
+
+# Logs
+backend/*.log
+backend/server.log
+backend/nohup.out
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Temporary files
+*.tmp
+*.bak
+*.backup

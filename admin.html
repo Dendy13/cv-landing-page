@@ -309,7 +309,7 @@
 
                 <!-- Skills Tab -->
                 <div id="skills" class="tab-content active">
-                    <button class="btn add-new-btn" onclick="toggleSkillForm()">+ Add New Skill</button>
+                    <button class="btn add-new-btn" onclick="newSkillForm()">+ Add New Skill</button>
                     
                     <div id="skillForm" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
                         <div class="form-row">
@@ -330,8 +330,8 @@
                             <label>Level (0-100)</label>
                             <input type="number" id="skillLevel" min="0" max="100" value="80">
                         </div>
-                        <button class="btn" onclick="addSkill()">Add Skill</button>
-                        <button class="btn btn-secondary" onclick="toggleSkillForm()">Cancel</button>
+                        <button class="btn" id="skillSubmitBtn" onclick="saveSkill()">Add Skill</button>
+                        <button class="btn btn-secondary" onclick="cancelSkillForm()">Cancel</button>
                     </div>
 
                     <div id="skillsList"></div>
@@ -339,7 +339,7 @@
 
                 <!-- Projects Tab -->
                 <div id="projects" class="tab-content">
-                    <button class="btn add-new-btn" onclick="toggleProjectForm()">+ Add New Project</button>
+                    <button class="btn add-new-btn" onclick="newProjectForm()">+ Add New Project</button>
                     
                     <div id="projectForm" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
                         <div class="form-row">
@@ -370,8 +370,8 @@
                             <label>Project Link</label>
                             <input type="text" id="projectLink" placeholder="https://...">
                         </div>
-                        <button class="btn" onclick="addProject()">Add Project</button>
-                        <button class="btn btn-secondary" onclick="toggleProjectForm()">Cancel</button>
+                        <button class="btn" id="projectSubmitBtn" onclick="saveProject()">Add Project</button>
+                        <button class="btn btn-secondary" onclick="cancelProjectForm()">Cancel</button>
                     </div>
 
                     <div id="projectsList"></div>
@@ -383,6 +383,8 @@
     <script>
         const API_BASE = 'https://cv-landing-page-production-029a.up.railway.app/api';
         let adminPassword = '';
+        let currentEditingSkill = null;
+        let currentEditingProject = null;
 
         function showMessage(msg, type = 'success') {
             const msgEl = document.getElementById('message');
@@ -460,7 +462,6 @@
 
                 if (res.ok) {
                     showMessage('Basic info updated successfully!', 'success');
-                    loadCVData();
                 } else {
                     showMessage('Failed to update', 'error');
                 }
@@ -469,7 +470,39 @@
             }
         }
 
-        async function addSkill() {
+        function newSkillForm() {
+            currentEditingSkill = null;
+            document.getElementById('skillIcon').value = '';
+            document.getElementById('skillName').value = '';
+            document.getElementById('skillDesc').value = '';
+            document.getElementById('skillLevel').value = '80';
+            document.getElementById('skillSubmitBtn').textContent = 'Add Skill';
+            document.getElementById('skillForm').style.display = 'block';
+            document.getElementById('skillForm').scrollIntoView();
+        }
+
+        function cancelSkillForm() {
+            document.getElementById('skillForm').style.display = 'none';
+            currentEditingSkill = null;
+        }
+
+        function editSkill(skillName) {
+            const skills = JSON.parse(localStorage.getItem('cvSkills') || '[]');
+            const skill = skills.find(s => s.name === skillName);
+            
+            if (skill) {
+                currentEditingSkill = skillName;
+                document.getElementById('skillIcon').value = skill.icon;
+                document.getElementById('skillName').value = skill.name;
+                document.getElementById('skillDesc').value = skill.description;
+                document.getElementById('skillLevel').value = skill.level;
+                document.getElementById('skillSubmitBtn').textContent = 'Update Skill';
+                document.getElementById('skillForm').style.display = 'block';
+                document.getElementById('skillForm').scrollIntoView();
+            }
+        }
+
+        async function saveSkill() {
             try {
                 const skillName = document.getElementById('skillName').value;
                 if (!skillName) {
@@ -490,11 +523,11 @@
                 });
 
                 if (res.ok) {
-                    showMessage('Skill added!', 'success');
-                    toggleSkillForm();
+                    showMessage(currentEditingSkill ? 'Skill updated!' : 'Skill added!', 'success');
                     loadCVData();
+                    cancelSkillForm();
                 } else {
-                    showMessage('Failed to add skill', 'error');
+                    showMessage('Failed to save skill', 'error');
                 }
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
@@ -523,6 +556,7 @@
         }
 
         function renderSkills(skills) {
+            localStorage.setItem('cvSkills', JSON.stringify(skills));
             const list = document.getElementById('skillsList');
             list.innerHTML = skills.map(skill => `
                 <div class="skill-item">
@@ -530,15 +564,53 @@
                         <span style="font-size: 24px; margin-right: 10px;">${skill.icon}</span>
                         <span class="skill-name">${skill.name}</span>
                         <span class="skill-level" style="margin-left: 20px;">${skill.level}%</span>
+                        <div style="color: #666; font-size: 14px; margin-top: 5px;">${skill.description}</div>
                     </div>
                     <div class="item-actions">
+                        <button class="btn btn-success" onclick="editSkill('${skill.name}')">Edit</button>
                         <button class="btn btn-danger" onclick="deleteSkill('${skill.name}')">Delete</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function addProject() {
+        function newProjectForm() {
+            currentEditingProject = null;
+            document.getElementById('projectIcon').value = '';
+            document.getElementById('projectTitle').value = '';
+            document.getElementById('projectDesc').value = '';
+            document.getElementById('projectTags').value = '';
+            document.getElementById('projectStatus').value = '';
+            document.getElementById('projectLink').value = '';
+            document.getElementById('projectSubmitBtn').textContent = 'Add Project';
+            document.getElementById('projectForm').style.display = 'block';
+            document.getElementById('projectForm').scrollIntoView();
+        }
+
+        function cancelProjectForm() {
+            document.getElementById('projectForm').style.display = 'none';
+            currentEditingProject = null;
+        }
+
+        function editProject(projectTitle) {
+            const projects = JSON.parse(localStorage.getItem('cvProjects') || '[]');
+            const project = projects.find(p => p.title === projectTitle);
+            
+            if (project) {
+                currentEditingProject = projectTitle;
+                document.getElementById('projectIcon').value = project.icon;
+                document.getElementById('projectTitle').value = project.title;
+                document.getElementById('projectDesc').value = project.description;
+                document.getElementById('projectTags').value = project.tags.join(', ');
+                document.getElementById('projectStatus').value = project.status;
+                document.getElementById('projectLink').value = project.link;
+                document.getElementById('projectSubmitBtn').textContent = 'Update Project';
+                document.getElementById('projectForm').style.display = 'block';
+                document.getElementById('projectForm').scrollIntoView();
+            }
+        }
+
+        async function saveProject() {
             try {
                 const projectTitle = document.getElementById('projectTitle').value;
                 if (!projectTitle) {
@@ -563,11 +635,11 @@
                 });
 
                 if (res.ok) {
-                    showMessage('Project added!', 'success');
-                    toggleProjectForm();
+                    showMessage(currentEditingProject ? 'Project updated!' : 'Project added!', 'success');
                     loadCVData();
+                    cancelProjectForm();
                 } else {
-                    showMessage('Failed to add project', 'error');
+                    showMessage('Failed to save project', 'error');
                 }
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
@@ -596,6 +668,7 @@
         }
 
         function renderProjects(projects) {
+            localStorage.setItem('cvProjects', JSON.stringify(projects));
             const list = document.getElementById('projectsList');
             list.innerHTML = projects.map(project => `
                 <div class="project-item">
@@ -603,8 +676,10 @@
                         <span style="font-size: 24px; margin-right: 10px;">${project.icon}</span>
                         <span class="project-title">${project.title}</span>
                         <span style="margin-left: 20px; color: #667eea; font-weight: bold;">${project.status}</span>
+                        <div style="color: #666; font-size: 14px; margin-top: 5px;">${project.description}</div>
                     </div>
                     <div class="item-actions">
+                        <button class="btn btn-success" onclick="editProject('${project.title.replace(/'/g, "\\'")}')">Edit</button>
                         <button class="btn btn-danger" onclick="deleteProject('${project.title}')">Delete</button>
                     </div>
                 </div>
@@ -616,16 +691,6 @@
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
-        }
-
-        function toggleSkillForm() {
-            document.getElementById('skillForm').style.display = 
-                document.getElementById('skillForm').style.display === 'none' ? 'block' : 'none';
-        }
-
-        function toggleProjectForm() {
-            document.getElementById('projectForm').style.display = 
-                document.getElementById('projectForm').style.display === 'none' ? 'block' : 'none';
         }
     </script>
 </body>

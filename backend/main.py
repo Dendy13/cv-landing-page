@@ -363,10 +363,12 @@ class CVProject(BaseModel):
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 # Try multiple possible paths
 DATA_FILE_PATHS = [
-    Path(__file__).parent.parent / "data.json",  # /app/data.json
     Path(__file__).parent / "data.json",         # /app/backend/data.json
-    Path("/app/data.json"),                       # Direct path
-    Path("./data.json"),                          # Relative
+    Path(__file__).parent.parent / "data.json",  # /app/data.json
+    Path("/app/backend/data.json"),              # Direct path
+    Path("/app/data.json"),                      # Direct path
+    Path("./backend/data.json"),                 # Relative
+    Path("./data.json"),                         # Relative
 ]
 
 DATA_FILE = None

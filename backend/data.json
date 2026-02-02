@@ -1,0 +1,62 @@
+{
+  "nama": "Dendy Fajar Kurniawan",
+  "panggilan": "Dendy",
+  "peran": "Python Scraper & Web Developer",
+  "bio": "Spesialis automasi data dan pengembangan web berbasis Linux. Fokus pada efisiensi, akurasi data, dan solusi yang scalable.",
+  "kontak": {
+    "email": "dendyfajark@gmail.com",
+    "github": "https://github.com/Dendy13",
+    "fiverr": "https://fiverr.com/username",
+    "linkedin": "https://linkedin.com/"
+  },
+  "skills": [
+    {
+      "icon": "🐍",
+      "name": "Python",
+      "description": "Expert dalam Python untuk web scraping, automation, dan data processing",
+      "level": 95
+    },
+    {
+      "icon": "⚡",
+      "name": "FastAPI",
+      "description": "Advanced dalam membangun REST API yang cepat dan modern",
+      "level": 88
+    },
+    {
+      "icon": "🎭",
+      "name": "Playwright",
+      "description": "Advanced web automation dan scraping untuk aplikasi modern",
+      "level": 90
+    },
+    {
+      "icon": "🐧",
+      "name": "Linux Mint",
+      "description": "Daily driver untuk development environment dan automation",
+      "level": 92
+    },
+    {
+      "icon": "📊",
+      "name": "Data Scraping",
+      "description": "Specialist dalam ekstraksi dan automasi pengumpulan data",
+      "level": 95
+    }
+  ],
+  "projects": [
+    {
+      "icon": "🛒",
+      "title": "E-commerce SaaS Scraper",
+      "description": "Platform automasi riset pasar yang mengambil data dari Tokopedia secara real-time menggunakan Playwright.",
+      "tags": ["Python", "Playwright", "FastAPI", "Data Engineering"],
+      "status": "70% Completed",
+      "link": "#"
+    },
+    {
+      "icon": "🐧",
+      "title": "Linux Virtual Environment Manager",
+      "description": "Script untuk automasi setup venv dan library Python di distro berbasis Debian.",
+      "tags": ["Python", "Linux", "Bash", "Automation"],
+      "status": "Production",
+      "link": "#"
+    }
+  ]
+}

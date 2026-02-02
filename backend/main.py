@@ -361,7 +361,24 @@ class CVProject(BaseModel):
 
 # Admin Configuration
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
-DATA_FILE = Path(__file__).parent.parent / "data.json"
+# Try multiple possible paths
+DATA_FILE_PATHS = [
+    Path(__file__).parent.parent / "data.json",  # /app/data.json
+    Path(__file__).parent / "data.json",         # /app/backend/data.json
+    Path("/app/data.json"),                       # Direct path
+    Path("./data.json"),                          # Relative
+]
+
+DATA_FILE = None
+for path in DATA_FILE_PATHS:
+    if path.exists():
+        DATA_FILE = path
+        logger.info(f"✅ Found data.json at: {path}")
+        break
+
+if not DATA_FILE:
+    logger.warning(f"⚠️ data.json not found in any location: {DATA_FILE_PATHS}")
+    DATA_FILE = DATA_FILE_PATHS[0]  # Default fallback
 
 
 def load_cv_data() -> dict:

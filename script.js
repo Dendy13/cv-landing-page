@@ -51,13 +51,26 @@ navLinks.forEach(link => {
 // Load data from JSON
 async function loadData() {
     try {
-        const response = await fetch('data.json');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        let data = null;
+
+        // Try load from backend API first
+        try {
+            const apiResponse = await fetch(`${API_BASE_URL}/admin/cv`);
+            if (apiResponse.ok) {
+                data = await apiResponse.json();
+            }
+        } catch (apiError) {
+            console.warn('API load failed, fallback to local data.json:', apiError);
         }
-        
-        const data = await response.json();
+
+        // Fallback to local data.json
+        if (!data) {
+            const response = await fetch('data.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            data = await response.json();
+        }
         
         // Update hero section
         if (data.nama) {

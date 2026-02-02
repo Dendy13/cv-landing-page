@@ -11,13 +11,11 @@ from typing import Optional
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-import smtplib
 import os
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 import logging
 from dotenv import load_dotenv
+import requests
 
 # Load environment variables
 load_dotenv()
@@ -96,23 +94,21 @@ class ContactResponse(BaseModel):
     message: str
     timestamp: str
 
-# Email configuration
-EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS", "dendyfajark@gmail.com")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "your_app_password")
-SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+# Resend configuration
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")
+TO_EMAIL = os.getenv("TO_EMAIL")
 
 def send_email(contact_data: ContactFormRequest) -> bool:
-    """Send email notification untuk contact form submission"""
-    try:
-        # Create email message
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"New Contact Form: {contact_data.subject}"
-        msg["From"] = EMAIL_ADDRESS
-        msg["To"] = EMAIL_ADDRESS
-        msg["Reply-To"] = contact_data.email
-        
-        # Plain text version
+        """Send email notification using Resend API"""
+        if not RESEND_API_KEY:
+                logger.error("❌ RESEND_API_KEY is not set")
+                return False
+        if not TO_EMAIL:
+                logger.error("❌ TO_EMAIL is not set")
+                return False
+
+        subject = f"New Contact Form: {contact_data.subject}"
         text = f"""
 Name: {contact_data.name}
 Email: {contact_data.email}
@@ -121,62 +117,73 @@ Subject: {contact_data.subject}
 Message:
 {contact_data.message}
 """
-        
-        # HTML version
+
         html = f"""
 <html>
-  <body style="font-family: Arial, sans-serif; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 8px;">
-      <h2 style="color: #00fff5; border-bottom: 2px solid #ff006e; padding-bottom: 10px;">New Contact Form Submission</h2>
-      
-      <table style="width: 100%; margin: 20px 0;">
-        <tr style="background: #f0f0f0;">
-          <td style="padding: 10px; font-weight: bold; width: 20%;">Name:</td>
-          <td style="padding: 10px;">{contact_data.name}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px; font-weight: bold;">Email:</td>
-          <td style="padding: 10px;"><a href="mailto:{contact_data.email}" style="color: #00fff5;">{contact_data.email}</a></td>
-        </tr>
-        <tr style="background: #f0f0f0;">
-          <td style="padding: 10px; font-weight: bold;">Subject:</td>
-          <td style="padding: 10px;">{contact_data.subject}</td>
-        </tr>
-      </table>
-      
-      <h3 style="color: #ff006e;">Message:</h3>
-      <div style="background: white; padding: 15px; border-left: 4px solid #00fff5; margin: 20px 0;">
-        <p style="white-space: pre-wrap; line-height: 1.6;">{contact_data.message}</p>
-      </div>
-      
-      <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-      <p style="color: #999; font-size: 12px;">
-        Submitted at: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}<br>
-        From IP: Check server logs
-      </p>
-    </div>
-  </body>
+    <body style="font-family: Arial, sans-serif; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 8px;">
+            <h2 style="color: #00fff5; border-bottom: 2px solid #ff006e; padding-bottom: 10px;">New Contact Form Submission</h2>
+
+            <table style="width: 100%; margin: 20px 0;">
+                <tr style="background: #f0f0f0;">
+                    <td style="padding: 10px; font-weight: bold; width: 20%;">Name:</td>
+                    <td style="padding: 10px;">{contact_data.name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; font-weight: bold;">Email:</td>
+                    <td style="padding: 10px;"><a href="mailto:{contact_data.email}" style="color: #00fff5;">{contact_data.email}</a></td>
+                </tr>
+                <tr style="background: #f0f0f0;">
+                    <td style="padding: 10px; font-weight: bold;">Subject:</td>
+                    <td style="padding: 10px;">{contact_data.subject}</td>
+                </tr>
+            </table>
+
+            <h3 style="color: #ff006e;">Message:</h3>
+            <div style="background: white; padding: 15px; border-left: 4px solid #00fff5; margin: 20px 0;">
+                <p style="white-space: pre-wrap; line-height: 1.6;">{contact_data.message}</p>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            <p style="color: #999; font-size: 12px;">
+                Submitted at: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}<br>
+                From IP: Check server logs
+            </p>
+        </div>
+    </body>
 </html>
 """
-        
-        # Attach parts
-        part1 = MIMEText(text, "plain")
-        part2 = MIMEText(html, "html")
-        msg.attach(part1)
-        msg.attach(part2)
-        
-        # Send email
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-            server.send_message(msg)
-        
-        logger.info(f"✅ Email sent successfully from {contact_data.email}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"❌ Failed to send email: {str(e)}")
-        return False
+
+        payload = {
+                "from": FROM_EMAIL,
+                "to": [TO_EMAIL],
+                "subject": subject,
+                "text": text,
+                "html": html,
+                "reply_to": contact_data.email
+        }
+
+        try:
+                response = requests.post(
+                        "https://api.resend.com/emails",
+                        headers={
+                                "Authorization": f"Bearer {RESEND_API_KEY}",
+                                "Content-Type": "application/json"
+                        },
+                        json=payload,
+                        timeout=15
+                )
+
+                if 200 <= response.status_code < 300:
+                        logger.info(f"✅ Email sent successfully from {contact_data.email}")
+                        return True
+
+                logger.error(f"❌ Resend error {response.status_code}: {response.text}")
+                return False
+
+        except Exception as e:
+                logger.error(f"❌ Failed to send email: {str(e)}")
+                return False
 
 # Routes
 @app.get("/health", tags=["Health"])

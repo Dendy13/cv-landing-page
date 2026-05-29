@@ -528,7 +528,8 @@
                     return;
                 }
 
-                const res = await fetch(`${API_BASE}/admin/cv/skill/${skillName}`, {
+                const targetName = currentEditingSkill ? currentEditingSkill : skillName;
+                const res = await fetch(`${API_BASE}/admin/cv/skill/${encodeURIComponent(targetName)}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

@@ -6,7 +6,7 @@ Handles contact form submissions dengan validation dan email integration via Res
 from fastapi import FastAPI, HTTPException, status, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, field_validator
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -15,7 +15,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import logging
 import os
-import secrets
+import requests
 import httpx
 import json
 from pathlib import Path
@@ -105,24 +105,11 @@ FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")
 TO_EMAIL = os.getenv("TO_EMAIL")
 
 # Admin configuration
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
 KUPAS_ADMIN_URL = os.getenv("KUPAS_ADMIN_URL", "http://localhost:8001")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-security = HTTPBasic()
-
-def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = secrets.compare_digest(credentials.username, ADMIN_USERNAME)
-    correct_password = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)
-    if not (correct_username and correct_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials
 
 supabase: Client = None
 if SUPABASE_URL and SUPABASE_KEY:
@@ -134,6 +121,30 @@ def get_supabase():
     if not supabase:
         raise HTTPException(status_code=500, detail="Database not configured")
     return supabase
+
+security = HTTPBearer()
+
+def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Verifies JWT token with Supabase and enforces ADMIN_EMAIL"""
+    token = credentials.credentials
+    db = get_supabase()
+    try:
+        user_response = db.auth.get_user(token)
+        user = user_response.user
+        
+        if not user:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+            
+        # Restrict to ADMIN_EMAIL if configured
+        if ADMIN_EMAIL and user.email != ADMIN_EMAIL:
+            logger.warning(f"Unauthorized email attempted admin access: {user.email}")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized as admin")
+            
+        return user
+    except Exception as e:
+        logger.error(f"Auth error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+
 
 def load_cv_data() -> dict:
     """Load CV data from Supabase"""
@@ -336,6 +347,10 @@ async def preflight_handler(full_path: str):
 
 
 # Admin Models
+class AdminAuthRequest(BaseModel):
+    email: str
+    password: str
+
 class CVBasicInfo(BaseModel):
     nama: str
     panggilan: str
@@ -343,13 +358,11 @@ class CVBasicInfo(BaseModel):
     bio: str
     about: str
 
-
 class CVSkill(BaseModel):
     icon: str
     name: str
     description: str
     level: int
-
 
 class CVProject(BaseModel):
     icon: str
@@ -362,11 +375,36 @@ class CVProject(BaseModel):
 
 # Admin Endpoints
 @app.post("/api/admin/auth", tags=["Admin"])
-async def admin_auth(credentials: HTTPBasicCredentials = Depends(verify_admin)):
-    """Authenticate admin via HTTP Basic Auth"""
-    logger.info("✅ Admin authenticated")
-    return {"authenticated": True, "message": "Authentication successful"}
-
+async def admin_auth(payload: AdminAuthRequest):
+    """Authenticate admin via Supabase Auth"""
+    db = get_supabase()
+    
+    # Check if the email is authorized
+    if ADMIN_EMAIL and payload.email != ADMIN_EMAIL:
+        logger.warning(f"❌ Unauthorized email attempt: {payload.email}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email not authorized as Admin"
+        )
+        
+    try:
+        res = db.auth.sign_in_with_password({
+            "email": payload.email,
+            "password": payload.password
+        })
+        
+        logger.info(f"✅ Admin authenticated: {payload.email}")
+        return {
+            "authenticated": True, 
+            "message": "Authentication successful",
+            "access_token": res.session.access_token
+        }
+    except Exception as e:
+        logger.warning(f"❌ Invalid admin login attempt for {payload.email}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
 
 @app.get("/api/admin/cv", tags=["Admin"])
 async def get_cv_data():
@@ -381,19 +419,16 @@ async def get_cv_data():
 
 
 @app.put("/api/admin/cv/basic", tags=["Admin"])
-async def update_cv_basic(
-    info: CVBasicInfo,
-    credentials: HTTPBasicCredentials = Depends(verify_admin)
-):
+async def update_cv_basic(payload: CVBasicInfo, admin = Depends(get_current_admin)):
     """Update CV basic information"""
     db = get_supabase()
     try:
         db.table('profile').update({
-            "nama": info.nama,
-            "panggilan": info.panggilan,
-            "peran": info.peran,
-            "bio": info.bio,
-            "about": info.about
+            "nama": payload.nama,
+            "panggilan": payload.panggilan,
+            "peran": payload.peran,
+            "bio": payload.bio,
+            "about": payload.about
         }).eq('id', 1).execute()
         return {"success": True, "message": "CV basic info updated"}
     except Exception as e:
@@ -402,21 +437,17 @@ async def update_cv_basic(
 
 
 @app.put("/api/admin/cv/skill/{skill_name}", tags=["Admin"])
-async def update_cv_skill(
-    skill_name: str,
-    skill: CVSkill,
-    credentials: HTTPBasicCredentials = Depends(verify_admin)
-):
+async def update_cv_skill(skill_name: str, payload: CVSkill, admin = Depends(get_current_admin)):
     """Update CV skill or add if not exists"""
     db = get_supabase()
     try:
         # Check if exists
         existing = db.table('skills').select('*').eq('name', skill_name).execute()
         data_to_save = {
-            "icon": skill.icon,
-            "name": skill.name,
-            "description": skill.description,
-            "level": skill.level
+            "icon": payload.icon,
+            "name": payload.name,
+            "description": payload.description,
+            "level": payload.level
         }
         if existing.data:
             db.table('skills').update(data_to_save).eq('name', skill_name).execute()
@@ -430,10 +461,7 @@ async def update_cv_skill(
 
 
 @app.delete("/api/admin/cv/skill/{skill_name}", tags=["Admin"])
-async def delete_cv_skill(
-    skill_name: str,
-    credentials: HTTPBasicCredentials = Depends(verify_admin)
-):
+async def delete_cv_skill(skill_name: str, admin = Depends(get_current_admin)):
     """Delete CV skill"""
     db = get_supabase()
     try:
@@ -445,44 +473,37 @@ async def delete_cv_skill(
 
 
 @app.post("/api/admin/cv/project", tags=["Admin"])
-async def add_cv_project(
-    project: CVProject,
-    credentials: HTTPBasicCredentials = Depends(verify_admin)
-):
+async def add_cv_project(payload: CVProject, admin = Depends(get_current_admin)):
     """Add new CV project"""
     db = get_supabase()
     try:
         data_to_save = {
-            "icon": project.icon,
-            "title": project.title,
-            "description": project.description,
-            "tags": project.tags,
-            "status": project.status,
-            "link": project.link
+            "icon": payload.icon,
+            "title": payload.title,
+            "description": payload.description,
+            "tags": payload.tags,
+            "status": payload.status,
+            "link": payload.link
         }
         db.table('projects').insert(data_to_save).execute()
-        return {"success": True, "message": "Project added", "project": project.dict()}
+        return {"success": True, "message": "Project added", "project": payload.dict()}
     except Exception as e:
         logger.error(f"Failed to add project: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save data")
 
 
 @app.put("/api/admin/cv/project/{project_title}", tags=["Admin"])
-async def update_cv_project(
-    project_title: str,
-    project: CVProject,
-    credentials: HTTPBasicCredentials = Depends(verify_admin)
-):
+async def update_cv_project(project_title: str, payload: CVProject, admin = Depends(get_current_admin)):
     """Update CV project"""
     db = get_supabase()
     try:
         data_to_save = {
-            "icon": project.icon,
-            "title": project.title,
-            "description": project.description,
-            "tags": project.tags,
-            "status": project.status,
-            "link": project.link
+            "icon": payload.icon,
+            "title": payload.title,
+            "description": payload.description,
+            "tags": payload.tags,
+            "status": payload.status,
+            "link": payload.link
         }
         db.table('projects').update(data_to_save).eq('title', project_title).execute()
         return {"success": True, "message": f"Project '{project_title}' updated"}
@@ -492,10 +513,7 @@ async def update_cv_project(
 
 
 @app.delete("/api/admin/cv/project/{project_title}", tags=["Admin"])
-async def delete_cv_project(
-    project_title: str,
-    credentials: HTTPBasicCredentials = Depends(verify_admin)
-):
+async def delete_cv_project(project_title: str, admin = Depends(get_current_admin)):
     """Delete CV project"""
     db = get_supabase()
     try:

@@ -259,6 +259,10 @@
         <div id="loginForm" class="login-form">
             <h1>🔐 Admin Login</h1>
             <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="adminEmail" placeholder="Enter admin email">
+            </div>
+            <div class="form-group">
                 <label>Password</label>
                 <input type="password" id="adminPassword" placeholder="Enter admin password">
             </div>
@@ -389,7 +393,7 @@
 
     <script>
         const API_BASE = '/api';
-        let adminPassword = '';
+        let adminToken = '';
         let currentEditingSkill = null;
         let currentEditingProject = null;
 
@@ -401,9 +405,10 @@
         }
 
         async function adminLogin() {
+            const email = document.getElementById('adminEmail').value;
             const password = document.getElementById('adminPassword').value;
-            if (!password) {
-                showMessage('Please enter password', 'error');
+            if (!email || !password) {
+                showMessage('Please enter email and password', 'error');
                 return;
             }
 
@@ -411,17 +416,19 @@
                 const res = await fetch(`${API_BASE}/admin/auth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
+                    body: JSON.stringify({ email, password })
                 });
 
-                if (res.ok) {
-                    adminPassword = password;
+                const data = await res.json();
+
+                if (res.ok && data.access_token) {
+                    adminToken = data.access_token;
                     document.getElementById('loginForm').style.display = 'none';
                     document.getElementById('adminPanel').style.display = 'block';
                     loadCVData();
                     showMessage('Login successful!', 'success');
                 } else {
-                    showMessage('Invalid password', 'error');
+                    showMessage(data.detail || 'Invalid email or password', 'error');
                 }
             } catch (error) {
                 showMessage('Login error: ' + error.message, 'error');
@@ -429,9 +436,10 @@
         }
 
         function adminLogout() {
-            adminPassword = '';
+            adminToken = '';
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('adminEmail').value = '';
             document.getElementById('adminPassword').value = '';
         }
 
@@ -467,9 +475,11 @@
             try {
                 const res = await fetch(`${API_BASE}/admin/cv/basic`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
                     body: JSON.stringify({
-                        password: adminPassword,
                         nama: document.getElementById('nama').value,
                         panggilan: document.getElementById('panggilan').value,
                         peran: document.getElementById('peran').value,
@@ -530,9 +540,11 @@
 
                 const res = await fetch(`${API_BASE}/admin/cv/skill/${skillName}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
                     body: JSON.stringify({
-                        password: adminPassword,
                         icon: document.getElementById('skillIcon').value,
                         name: skillName,
                         description: document.getElementById('skillDesc').value,
@@ -558,8 +570,10 @@
             try {
                 const res = await fetch(`${API_BASE}/admin/cv/skill/${skillName}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: adminPassword })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    }
                 });
 
                 if (res.ok) {
@@ -645,9 +659,11 @@
 
                 const res = await fetch(endpoint, {
                     method: isEditing ? 'PUT' : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
                     body: JSON.stringify({
-                        password: adminPassword,
                         icon: document.getElementById('projectIcon').value,
                         title: projectTitle,
                         description: document.getElementById('projectDesc').value,
@@ -675,8 +691,10 @@
             try {
                 const res = await fetch(`${API_BASE}/admin/cv/project/${projectTitle}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: adminPassword })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    }
                 });
 
                 if (res.ok) {

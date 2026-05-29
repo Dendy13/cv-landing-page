@@ -144,30 +144,26 @@ def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(securi
 
 def load_cv_data() -> dict:
     """Load CV data from Supabase"""
-    try:
-        db = get_supabase()
-            
-        profile_res = db.table('profile').select('*').eq('id', 1).execute()
-        skills_res = db.table('skills').select('*').execute()
-        projects_res = db.table('projects').select('*').execute()
+    db = get_supabase()
         
-        if not profile_res.data:
-            return {}
-            
-        profile = profile_res.data[0]
-        return {
-            "nama": profile.get("nama", ""),
-            "panggilan": profile.get("panggilan", ""),
-            "peran": profile.get("peran", ""),
-            "bio": profile.get("bio", ""),
-            "about": profile.get("about", ""),
-            "kontak": profile.get("kontak", {}),
-            "skills": skills_res.data,
-            "projects": projects_res.data
-        }
-    except Exception as e:
-        logger.error(f"Error loading data from Supabase: {str(e)}")
-        return {}
+    profile_res = db.table('profile').select('*').eq('id', 1).execute()
+    skills_res = db.table('skills').select('*').execute()
+    projects_res = db.table('projects').select('*').execute()
+    
+    if not profile_res.data:
+        raise ValueError("Profile table is empty or id=1 not found.")
+        
+    profile = profile_res.data[0]
+    return {
+        "nama": profile.get("nama", ""),
+        "panggilan": profile.get("panggilan", ""),
+        "peran": profile.get("peran", ""),
+        "bio": profile.get("bio", ""),
+        "about": profile.get("about", ""),
+        "kontak": profile.get("kontak", {}),
+        "skills": skills_res.data,
+        "projects": projects_res.data
+    }
 
 
 def send_email(contact_data: ContactFormRequest) -> bool:
@@ -388,13 +384,15 @@ async def admin_auth(payload: AdminAuthRequest):
 @app.get("/api/admin/cv", tags=["Admin"])
 async def get_cv_data():
     """Get CV data for editing"""
-    data = load_cv_data()
-    if not data:
+    try:
+        data = load_cv_data()
+        return data
+    except Exception as e:
+        logger.error(f"Database error in get_cv_data: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="CV data not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Supabase Error: {str(e)}"
         )
-    return data
 
 
 @app.put("/api/admin/cv/basic", tags=["Admin"])

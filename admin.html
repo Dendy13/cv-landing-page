@@ -351,7 +351,12 @@
                     <div id="projectForm" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Icon (emoji)</label>
+                                <label>Image / Photo (Replaces Icon)</label>
+                                <input type="file" id="projectImage" accept="image/*" onchange="handleImageUpload(event)">
+                                <img id="projectImagePreview" style="display:none; max-width: 100px; max-height: 100px; margin-top: 10px; border-radius: 4px;">
+                            </div>
+                            <div class="form-group">
+                                <label>Icon (emoji fallback)</label>
                                 <input type="text" id="projectIcon" placeholder="e.g., 🛒">
                             </div>
                             <div class="form-group">
@@ -392,6 +397,49 @@
         let adminPassword = '';
         let currentEditingSkill = null;
         let currentEditingProject = null;
+        let currentProjectBase64 = null;
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 600;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    currentProjectBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    const preview = document.getElementById('projectImagePreview');
+                    preview.src = currentProjectBase64;
+                    preview.style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
 
         function showMessage(msg, type = 'success') {
             const msgEl = document.getElementById('message');
@@ -595,6 +643,10 @@
 
         function newProjectForm() {
             currentEditingProject = null;
+            currentProjectBase64 = null;
+            document.getElementById('projectImage').value = '';
+            document.getElementById('projectImagePreview').style.display = 'none';
+            document.getElementById('projectImagePreview').src = '';
             document.getElementById('projectIcon').value = '';
             document.getElementById('projectTitle').value = '';
             document.getElementById('projectDesc').value = '';
@@ -609,6 +661,7 @@
         function cancelProjectForm() {
             document.getElementById('projectForm').style.display = 'none';
             currentEditingProject = null;
+            currentProjectBase64 = null;
         }
 
         function editProject(projectTitle) {
@@ -617,6 +670,17 @@
             
             if (project) {
                 currentEditingProject = projectTitle;
+                currentProjectBase64 = project.image || null;
+                
+                if (project.image) {
+                    const preview = document.getElementById('projectImagePreview');
+                    preview.src = project.image;
+                    preview.style.display = 'block';
+                } else {
+                    document.getElementById('projectImagePreview').style.display = 'none';
+                }
+                
+                document.getElementById('projectImage').value = '';
                 document.getElementById('projectIcon').value = project.icon;
                 document.getElementById('projectTitle').value = project.title;
                 document.getElementById('projectDesc').value = project.description;
@@ -650,6 +714,7 @@
                     body: JSON.stringify({
                         password: adminPassword,
                         icon: document.getElementById('projectIcon').value,
+                        image: currentProjectBase64,
                         title: projectTitle,
                         description: document.getElementById('projectDesc').value,
                         tags: tags,

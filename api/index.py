@@ -4,6 +4,7 @@ Handles contact form submissions dengan validation dan email integration via Res
 """
 
 from fastapi import FastAPI, HTTPException, status, Request
+from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, field_validator
@@ -118,6 +119,7 @@ class CVSkill(BaseModel):
 
 class CVProject(BaseModel):
     icon: str
+    image: Optional[str] = None
     title: str
     description: str
     tags: list
@@ -336,6 +338,7 @@ class CVSkill(BaseModel):
 
 class CVProject(BaseModel):
     icon: str
+    image: Optional[str] = None
     title: str
     description: str
     tags: list

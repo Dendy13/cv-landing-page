@@ -193,10 +193,15 @@ function renderProjects(projects) {
         return;
     }
     
-    projectsGrid.innerHTML = projects.map((project, index) => `
+    projectsGrid.innerHTML = projects.map((project, index) => {
+        const imageHtml = project.image 
+            ? `<img src="${project.image}" alt="${escapeHtml(project.title)}" style="width: 100%; height: 100%; object-fit: cover;">`
+            : `${escapeHtml(project.icon)}`;
+            
+        return `
         <div class="project-card" style="animation-delay: ${index * 0.1}s">
             <div class="project-image">
-                ${escapeHtml(project.icon)}
+                ${imageHtml}
             </div>
             <div class="project-content">
                 <h3 class="project-title">${escapeHtml(project.title)}</h3>
@@ -210,7 +215,7 @@ function renderProjects(projects) {
                 </a>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 // Intersection Observer for skill levels animation

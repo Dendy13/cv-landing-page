@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE_URL = 'https://cv-landing-page-production-029a.up.railway.app/api';
+const API_BASE_URL = '/api';
 
 // Smooth scroll polyfill untuk browser lama
 if (!('scrollBehavior' in document.documentElement.style)) {

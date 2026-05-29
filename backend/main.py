@@ -369,7 +369,7 @@ async def admin_auth(credentials: HTTPBasicCredentials = Depends(verify_admin)):
 
 
 @app.get("/api/admin/cv", tags=["Admin"])
-async def get_cv_data(credentials: HTTPBasicCredentials = Depends(verify_admin)):
+async def get_cv_data():
     """Get CV data for editing"""
     data = load_cv_data()
     if not data:

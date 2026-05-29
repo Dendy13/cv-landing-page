@@ -16,10 +16,10 @@ from dotenv import load_dotenv
 import logging
 import os
 import secrets
-import requests
 import httpx
 import json
 from pathlib import Path
+from supabase import create_client, Client
 
 # Load environment variables
 load_dotenv()
@@ -99,31 +99,6 @@ class ContactResponse(BaseModel):
     timestamp: str
 
 
-# Admin Models
-class CVBasicInfo(BaseModel):
-    nama: str
-    panggilan: str
-    peran: str
-    bio: str
-    about: str
-
-
-class CVSkill(BaseModel):
-    icon: str
-    name: str
-    description: str
-    level: int
-
-
-class CVProject(BaseModel):
-    icon: str
-    title: str
-    description: str
-    tags: list
-    status: str
-    link: str
-
-
 # Resend configuration
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")
@@ -132,77 +107,61 @@ TO_EMAIL = os.getenv("TO_EMAIL")
 # Admin configuration
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
-
-# Kupas proxy configuration
 KUPAS_ADMIN_URL = os.getenv("KUPAS_ADMIN_URL", "http://localhost:8001")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-# Try multiple possible paths for data.json
-DATA_FILE_PATHS = [
-    Path(__file__).parent / "data.json",         # /app/backend/data.json
-    Path(__file__).parent.parent / "data.json",  # /app/data.json
-    Path("/app/backend/data.json"),              # Direct path
-    Path("/app/data.json"),                      # Direct path
-    Path("./backend/data.json"),                 # Relative
-    Path("./data.json"),                         # Relative
-]
-
-DATA_FILE = None
-for path in DATA_FILE_PATHS:
-    if path.exists():
-        DATA_FILE = path
-        logger.info(f"✅ Found data.json at: {path}")
-        break
-
-if not DATA_FILE:
-    logger.warning(f"⚠️ data.json not found in any location: {DATA_FILE_PATHS}")
-    DATA_FILE = DATA_FILE_PATHS[0]  # Default fallback
-
-
-# HTTP Basic security
 security = HTTPBasic()
 
-
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
-    """Verify admin credentials via HTTP Basic Auth"""
-    correct_username = secrets.compare_digest(
-        credentials.username.encode("utf-8"),
-        ADMIN_USERNAME.encode("utf-8")
-    )
-    correct_password = secrets.compare_digest(
-        credentials.password.encode("utf-8"),
-        ADMIN_PASSWORD.encode("utf-8")
-    )
+    correct_username = secrets.compare_digest(credentials.username, ADMIN_USERNAME)
+    correct_password = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)
     if not (correct_username and correct_password):
-        logger.warning("❌ Invalid admin password attempt")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Basic"},
         )
     return credentials
 
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    logger.warning("⚠️ SUPABASE_URL or SUPABASE_KEY is missing!")
+
+def get_supabase():
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    return supabase
 
 def load_cv_data() -> dict:
-    """Load CV data from JSON file"""
+    """Load CV data from Supabase"""
     try:
-        if DATA_FILE.exists():
-            with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+        if not supabase:
+            return {}
+            
+        profile_res = supabase.table('profile').select('*').eq('id', 1).execute()
+        skills_res = supabase.table('skills').select('*').execute()
+        projects_res = supabase.table('projects').select('*').execute()
+        
+        if not profile_res.data:
+            return {}
+            
+        profile = profile_res.data[0]
+        return {
+            "nama": profile.get("nama", ""),
+            "panggilan": profile.get("panggilan", ""),
+            "peran": profile.get("peran", ""),
+            "bio": profile.get("bio", ""),
+            "about": profile.get("about", ""),
+            "kontak": profile.get("kontak", {}),
+            "skills": skills_res.data,
+            "projects": projects_res.data
+        }
     except Exception as e:
-        logger.error(f"Error loading data: {str(e)}")
-    return {}
-
-
-def save_cv_data(data: dict) -> bool:
-    """Save CV data to JSON file"""
-    try:
-        with open(DATA_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        logger.info("✅ CV data saved successfully")
-        return True
-    except Exception as e:
-        logger.error(f"❌ Error saving data: {str(e)}")
-        return False
+        logger.error(f"Error loading data from Supabase: {str(e)}")
+        return {}
 
 
 def send_email(contact_data: ContactFormRequest) -> bool:
@@ -376,6 +335,31 @@ async def preflight_handler(full_path: str):
     return {"status": "ok"}
 
 
+# Admin Models
+class CVBasicInfo(BaseModel):
+    nama: str
+    panggilan: str
+    peran: str
+    bio: str
+    about: str
+
+
+class CVSkill(BaseModel):
+    icon: str
+    name: str
+    description: str
+    level: int
+
+
+class CVProject(BaseModel):
+    icon: str
+    title: str
+    description: str
+    tags: list
+    status: str
+    link: str
+
+
 # Admin Endpoints
 @app.post("/api/admin/auth", tags=["Admin"])
 async def admin_auth(credentials: HTTPBasicCredentials = Depends(verify_admin)):
@@ -402,20 +386,19 @@ async def update_cv_basic(
     credentials: HTTPBasicCredentials = Depends(verify_admin)
 ):
     """Update CV basic information"""
-    data = load_cv_data()
-    data["nama"] = info.nama
-    data["panggilan"] = info.panggilan
-    data["peran"] = info.peran
-    data["bio"] = info.bio
-    data["about"] = info.about
-
-    if save_cv_data(data):
+    db = get_supabase()
+    try:
+        db.table('profile').update({
+            "nama": info.nama,
+            "panggilan": info.panggilan,
+            "peran": info.peran,
+            "bio": info.bio,
+            "about": info.about
+        }).eq('id', 1).execute()
         return {"success": True, "message": "CV basic info updated"}
-
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Failed to save data"
-    )
+    except Exception as e:
+        logger.error(f"Failed to update profile: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save data")
 
 
 @app.put("/api/admin/cv/skill/{skill_name}", tags=["Admin"])
@@ -424,29 +407,26 @@ async def update_cv_skill(
     skill: CVSkill,
     credentials: HTTPBasicCredentials = Depends(verify_admin)
 ):
-    """Update CV skill"""
-    data = load_cv_data()
-    skills = data.get("skills", [])
-
-    updated = False
-    for s in skills:
-        if s["name"] == skill_name:
-            s.update(skill.dict())
-            updated = True
-            break
-
-    if not updated:
-        skills.append(skill.dict())
-
-    data["skills"] = skills
-
-    if save_cv_data(data):
+    """Update CV skill or add if not exists"""
+    db = get_supabase()
+    try:
+        # Check if exists
+        existing = db.table('skills').select('*').eq('name', skill_name).execute()
+        data_to_save = {
+            "icon": skill.icon,
+            "name": skill.name,
+            "description": skill.description,
+            "level": skill.level
+        }
+        if existing.data:
+            db.table('skills').update(data_to_save).eq('name', skill_name).execute()
+        else:
+            db.table('skills').insert(data_to_save).execute()
+            
         return {"success": True, "message": f"Skill '{skill_name}' updated"}
-
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Failed to save data"
-    )
+    except Exception as e:
+        logger.error(f"Failed to update skill: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save data")
 
 
 @app.delete("/api/admin/cv/skill/{skill_name}", tags=["Admin"])
@@ -455,16 +435,13 @@ async def delete_cv_skill(
     credentials: HTTPBasicCredentials = Depends(verify_admin)
 ):
     """Delete CV skill"""
-    data = load_cv_data()
-    data["skills"] = [s for s in data.get("skills", []) if s["name"] != skill_name]
-
-    if save_cv_data(data):
+    db = get_supabase()
+    try:
+        db.table('skills').delete().eq('name', skill_name).execute()
         return {"success": True, "message": f"Skill '{skill_name}' deleted"}
-
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Failed to save data"
-    )
+    except Exception as e:
+        logger.error(f"Failed to delete skill: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save data")
 
 
 @app.post("/api/admin/cv/project", tags=["Admin"])
@@ -473,18 +450,21 @@ async def add_cv_project(
     credentials: HTTPBasicCredentials = Depends(verify_admin)
 ):
     """Add new CV project"""
-    data = load_cv_data()
-    projects = data.get("projects", [])
-    projects.append(project.dict())
-    data["projects"] = projects
-
-    if save_cv_data(data):
+    db = get_supabase()
+    try:
+        data_to_save = {
+            "icon": project.icon,
+            "title": project.title,
+            "description": project.description,
+            "tags": project.tags,
+            "status": project.status,
+            "link": project.link
+        }
+        db.table('projects').insert(data_to_save).execute()
         return {"success": True, "message": "Project added", "project": project.dict()}
-
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Failed to save data"
-    )
+    except Exception as e:
+        logger.error(f"Failed to add project: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save data")
 
 
 @app.put("/api/admin/cv/project/{project_title}", tags=["Admin"])
@@ -494,31 +474,21 @@ async def update_cv_project(
     credentials: HTTPBasicCredentials = Depends(verify_admin)
 ):
     """Update CV project"""
-    data = load_cv_data()
-    projects = data.get("projects", [])
-
-    updated = False
-    for p in projects:
-        if p["title"] == project_title:
-            p.update(project.dict())
-            updated = True
-            break
-
-    if not updated:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Project '{project_title}' not found"
-        )
-
-    data["projects"] = projects
-
-    if save_cv_data(data):
+    db = get_supabase()
+    try:
+        data_to_save = {
+            "icon": project.icon,
+            "title": project.title,
+            "description": project.description,
+            "tags": project.tags,
+            "status": project.status,
+            "link": project.link
+        }
+        db.table('projects').update(data_to_save).eq('title', project_title).execute()
         return {"success": True, "message": f"Project '{project_title}' updated"}
-
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Failed to save data"
-    )
+    except Exception as e:
+        logger.error(f"Failed to update project: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save data")
 
 
 @app.delete("/api/admin/cv/project/{project_title}", tags=["Admin"])
@@ -527,16 +497,13 @@ async def delete_cv_project(
     credentials: HTTPBasicCredentials = Depends(verify_admin)
 ):
     """Delete CV project"""
-    data = load_cv_data()
-    data["projects"] = [p for p in data.get("projects", []) if p["title"] != project_title]
-
-    if save_cv_data(data):
+    db = get_supabase()
+    try:
+        db.table('projects').delete().eq('title', project_title).execute()
         return {"success": True, "message": f"Project '{project_title}' deleted"}
-
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Failed to save data"
-    )
+    except Exception as e:
+        logger.error(f"Failed to delete project: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save data")
 
 
 # Kupas Proxy Endpoint

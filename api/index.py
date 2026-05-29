@@ -423,9 +423,15 @@ async def admin_auth(auth: AdminAuthRequest):
     )
 
 
+from fastapi import Response
+
 @app.get("/api/admin/cv", tags=["Admin"])
-async def get_cv_data():
+async def get_cv_data(response: Response):
     """Get CV data for editing"""
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
     data = load_cv_data()
     if not data:
         raise HTTPException(

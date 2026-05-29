@@ -580,6 +580,43 @@ async def update_cv_project(project_title: str, payload: CVProjectUpdate):
     )
 
 
+@app.get("/api/admin/debug", tags=["Admin"])
+async def debug_firebase():
+    """Debug endpoint to check Firebase connectivity"""
+    debug_info = {
+        "FIREBASE_URL_SET": bool(FIREBASE_URL),
+        "FIREBASE_URL": FIREBASE_URL if FIREBASE_URL else "None",
+        "firebase_connection": "Not tested",
+        "firebase_data_is_null": True,
+        "fallback_used": False,
+        "error": None
+    }
+    
+    if FIREBASE_URL:
+        try:
+            response = requests.get(f"{FIREBASE_URL}cv_data.json", timeout=10)
+            debug_info["firebase_connection"] = f"HTTP {response.status_code}"
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data is None:
+                    debug_info["firebase_data_is_null"] = True
+                    debug_info["fallback_used"] = True
+                else:
+                    debug_info["firebase_data_is_null"] = False
+                    debug_info["fallback_used"] = False
+            else:
+                debug_info["error"] = response.text
+                debug_info["fallback_used"] = True
+        except Exception as e:
+            debug_info["error"] = str(e)
+            debug_info["fallback_used"] = True
+    else:
+        debug_info["fallback_used"] = True
+        
+    return debug_info
+
+
 @app.delete("/api/admin/cv/project/{project_title}", tags=["Admin"])
 async def delete_cv_project(auth: AdminAuthRequest, project_title: str):
     """Delete CV project"""

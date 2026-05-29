@@ -372,19 +372,26 @@ def load_cv_data() -> dict:
     return {}
 
 
-def save_cv_data(data: dict) -> bool:
+def save_cv_data(data: dict):
     """Save CV data to Firebase and fallback to JSON file"""
+    error_msg = "Unknown error"
     success = False
-    try:
-        if FIREBASE_URL:
+    
+    if FIREBASE_URL:
+        try:
             response = requests.put(f"{FIREBASE_URL}cv_data.json", json=data, timeout=10)
             if response.status_code == 200:
                 logger.info("✅ CV data saved successfully to Firebase")
                 success = True
+                error_msg = ""
             else:
                 logger.error(f"❌ Firebase error {response.status_code}: {response.text}")
-    except Exception as e:
-        logger.error(f"❌ Error saving to Firebase: {e}")
+                error_msg = f"Firebase returned {response.status_code}: {response.text}"
+        except Exception as e:
+            logger.error(f"❌ Error saving to Firebase: {e}")
+            error_msg = f"Firebase connection error: {str(e)}"
+    else:
+        error_msg = "FIREBASE_URL environment variable is not set"
         
     try:
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
@@ -392,10 +399,13 @@ def save_cv_data(data: dict) -> bool:
         logger.info("✅ CV data saved successfully to local file")
         if not FIREBASE_URL:
             success = True
+            error_msg = ""
     except Exception as e:
         logger.error(f"❌ Error saving data locally: {e}")
+        if not success:
+            error_msg += f" | Local save error: {str(e)}"
         
-    return success
+    return success, error_msg
 
 
 # Admin Endpoints
@@ -441,12 +451,13 @@ async def update_cv_basic(payload: CVBasicUpdate):
     data["bio"] = payload.bio
     data["about"] = payload.about
     
-    if save_cv_data(data):
-        return {"success": True, "message": "CV basic info updated"}
+    success, error_msg = save_cv_data(data)
+    if success:
+        return {"success": True, "message": "Operasi berhasil"}
     
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Failed to save data"
+        detail=f"Failed to save data: {error_msg}"
     )
 
 

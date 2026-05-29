@@ -389,7 +389,7 @@
 
     <script>
         const API_BASE = '/api';
-        let adminToken = '';
+        let adminPassword = '';
         let currentEditingSkill = null;
         let currentEditingProject = null;
 
@@ -414,16 +414,14 @@
                     body: JSON.stringify({ password })
                 });
 
-                const data = await res.json();
-
-                if (res.ok && data.access_token) {
-                    adminToken = data.access_token;
+                if (res.ok) {
+                    adminPassword = password;
                     document.getElementById('loginForm').style.display = 'none';
                     document.getElementById('adminPanel').style.display = 'block';
                     loadCVData();
                     showMessage('Login successful!', 'success');
                 } else {
-                    showMessage(data.detail || 'Invalid email or password', 'error');
+                    showMessage('Invalid password', 'error');
                 }
             } catch (error) {
                 showMessage('Login error: ' + error.message, 'error');
@@ -431,7 +429,7 @@
         }
 
         function adminLogout() {
-            adminToken = '';
+            adminPassword = '';
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('adminPassword').value = '';
@@ -469,11 +467,9 @@
             try {
                 const res = await fetch(`${API_BASE}/admin/cv/basic`, {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${adminToken}`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        password: adminPassword,
                         nama: document.getElementById('nama').value,
                         panggilan: document.getElementById('panggilan').value,
                         peran: document.getElementById('peran').value,
@@ -534,11 +530,9 @@
 
                 const res = await fetch(`${API_BASE}/admin/cv/skill/${skillName}`, {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${adminToken}`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        password: adminPassword,
                         icon: document.getElementById('skillIcon').value,
                         name: skillName,
                         description: document.getElementById('skillDesc').value,
@@ -564,10 +558,8 @@
             try {
                 const res = await fetch(`${API_BASE}/admin/cv/skill/${skillName}`, {
                     method: 'DELETE',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${adminToken}`
-                    }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
                 });
 
                 if (res.ok) {
@@ -653,11 +645,9 @@
 
                 const res = await fetch(endpoint, {
                     method: isEditing ? 'PUT' : 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${adminToken}`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        password: adminPassword,
                         icon: document.getElementById('projectIcon').value,
                         title: projectTitle,
                         description: document.getElementById('projectDesc').value,
@@ -685,10 +675,8 @@
             try {
                 const res = await fetch(`${API_BASE}/admin/cv/project/${projectTitle}`, {
                     method: 'DELETE',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${adminToken}`
-                    }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
                 });
 
                 if (res.ok) {

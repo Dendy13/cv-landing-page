@@ -105,7 +105,7 @@ FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")
 TO_EMAIL = os.getenv("TO_EMAIL")
 
 # Admin configuration
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 KUPAS_ADMIN_URL = os.getenv("KUPAS_ADMIN_URL", "http://localhost:8001")
 SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
@@ -135,25 +135,11 @@ def get_supabase() -> Client:
 security = HTTPBearer()
 
 def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verifies JWT token with Supabase and enforces ADMIN_EMAIL"""
+    """Verifies static JWT token"""
     token = credentials.credentials
-    db = get_supabase()
-    try:
-        user_response = db.auth.get_user(token)
-        user = user_response.user
-        
-        if not user:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-            
-        # Restrict to ADMIN_EMAIL if configured
-        if ADMIN_EMAIL and user.email != ADMIN_EMAIL:
-            logger.warning(f"Unauthorized email attempted admin access: {user.email}")
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized as admin")
-            
-        return user
-    except Exception as e:
-        logger.error(f"Auth error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+    if token != "admin-session-token":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    return True
 
 
 def load_cv_data() -> dict:
@@ -357,7 +343,6 @@ async def preflight_handler(full_path: str):
 
 # Admin Models
 class AdminAuthRequest(BaseModel):
-    email: str
     password: str
 
 class CVBasicInfo(BaseModel):
@@ -385,35 +370,20 @@ class CVProject(BaseModel):
 # Admin Endpoints
 @app.post("/api/admin/auth", tags=["Admin"])
 async def admin_auth(payload: AdminAuthRequest):
-    """Authenticate admin via Supabase Auth"""
-    db = get_supabase()
-    
-    # Check if the email is authorized
-    if ADMIN_EMAIL and payload.email != ADMIN_EMAIL:
-        logger.warning(f"❌ Unauthorized email attempt: {payload.email}")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Email not authorized as Admin"
-        )
-        
-    try:
-        res = db.auth.sign_in_with_password({
-            "email": payload.email,
-            "password": payload.password
-        })
-        
-        logger.info(f"✅ Admin authenticated: {payload.email}")
-        return {
-            "authenticated": True, 
-            "message": "Authentication successful",
-            "access_token": res.session.access_token
-        }
-    except Exception as e:
-        logger.warning(f"❌ Invalid admin login attempt for {payload.email}: {str(e)}")
+    """Authenticate admin via simple password"""
+    if payload.password != ADMIN_PASSWORD:
+        logger.warning("❌ Invalid admin login attempt")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
+            detail="Invalid password"
         )
+        
+    logger.info("✅ Admin authenticated")
+    return {
+        "authenticated": True, 
+        "message": "Authentication successful",
+        "access_token": "admin-session-token"
+    }
 
 @app.get("/api/admin/cv", tags=["Admin"])
 async def get_cv_data():

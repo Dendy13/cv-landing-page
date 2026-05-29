@@ -259,10 +259,6 @@
         <div id="loginForm" class="login-form">
             <h1>🔐 Admin Login</h1>
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="adminEmail" placeholder="Enter admin email">
-            </div>
-            <div class="form-group">
                 <label>Password</label>
                 <input type="password" id="adminPassword" placeholder="Enter admin password">
             </div>
@@ -405,10 +401,9 @@
         }
 
         async function adminLogin() {
-            const email = document.getElementById('adminEmail').value;
             const password = document.getElementById('adminPassword').value;
-            if (!email || !password) {
-                showMessage('Please enter email and password', 'error');
+            if (!password) {
+                showMessage('Please enter password', 'error');
                 return;
             }
 
@@ -416,7 +411,7 @@
                 const res = await fetch(`${API_BASE}/admin/auth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ password })
                 });
 
                 const data = await res.json();
@@ -439,7 +434,6 @@
             adminToken = '';
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('adminEmail').value = '';
             document.getElementById('adminPassword').value = '';
         }
 

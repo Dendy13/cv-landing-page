@@ -111,16 +111,26 @@ SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL"
 SUPABASE_KEY = os.getenv("SUPABASE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
 
-supabase: Client = None
-if SUPABASE_URL and SUPABASE_KEY:
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-else:
-    logger.warning("⚠️ SUPABASE_URL or SUPABASE_KEY is missing!")
+supabase_client = None
 
-def get_supabase():
-    if not supabase:
+def get_supabase() -> Client:
+    global supabase_client
+    if supabase_client:
+        return supabase_client
+        
+    url = SUPABASE_URL
+    key = SUPABASE_KEY
+    
+    if not url or not key:
+        logger.error("Missing SUPABASE_URL or SUPABASE_KEY")
         raise HTTPException(status_code=500, detail="Database not configured")
-    return supabase
+        
+    try:
+        supabase_client = create_client(url, key)
+        return supabase_client
+    except Exception as e:
+        logger.error(f"Failed to initialize Supabase client: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
 
 security = HTTPBearer()
 
@@ -149,12 +159,11 @@ def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(securi
 def load_cv_data() -> dict:
     """Load CV data from Supabase"""
     try:
-        if not supabase:
-            return {}
+        db = get_supabase()
             
-        profile_res = supabase.table('profile').select('*').eq('id', 1).execute()
-        skills_res = supabase.table('skills').select('*').execute()
-        projects_res = supabase.table('projects').select('*').execute()
+        profile_res = db.table('profile').select('*').eq('id', 1).execute()
+        skills_res = db.table('skills').select('*').execute()
+        projects_res = db.table('projects').select('*').execute()
         
         if not profile_res.data:
             return {}

@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Dendy Fajar Kurniawan - Python Scraper & Web Developer. Spesialis automasi data, web scraping, dan pengembangan backend modern.">
-    <meta name="keywords" content="Python, Web Scraping, FastAPI, Playwright, Linux, Web Developer, Data Engineering">
+    <meta name="description" content="Dendy Fajar Kurniawan - Full Stack Web Developer. Spesialis pengembangan web modern, API berkinerja tinggi, dan arsitektur scalable.">
+    <meta name="keywords" content="Python, Web Developer, FastAPI, React, Next.js, Linux, Full Stack, Backend">
     <meta name="author" content="Dendy Fajar Kurniawan">
     <meta name="theme-color" content="#0ff0ff">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://dendyfajar.com/">
-    <meta property="og:title" content="Dendy Fajar Kurniawan - Python Developer & Data Scraper">
-    <meta property="og:description" content="Expert dalam Python, web scraping, dan automasi data. Check out my projects dan services.">
+    <meta property="og:title" content="Dendy Fajar Kurniawan - Full Stack Web Developer">
+    <meta property="og:description" content="Expert dalam Web Development dan Backend Architecture. Check out my projects dan services.">
     <meta property="og:image" content="https://dendyfajar.com/og-image.png">
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://dendyfajar.com/">
-    <meta name="twitter:title" content="Dendy Fajar Kurniawan - Python Developer & Data Scraper">
-    <meta name="twitter:description" content="Expert dalam Python, web scraping, dan automasi data.">
+    <meta name="twitter:title" content="Dendy Fajar Kurniawan - Full Stack Web Developer">
+    <meta name="twitter:description" content="Expert dalam Web Development dan Backend Architecture.">
     <meta name="twitter:image" content="https://dendyfajar.com/og-image.png">
     
-    <title>Dendy - Python Scraper & Web Developer</title>
+    <title>Dendy - Web Developer</title>
     <link rel="canonical" href="https://dendyfajar.com/">
     <link rel="stylesheet" href="style.css">
     
@@ -45,7 +45,7 @@
         "https://linkedin.com/",
         "https://fiverr.com/username"
       ],
-      "jobTitle": "Python Developer & Data Scraper",
+      "jobTitle": "Full Stack Web Developer",
       "worksFor": {
         "@type": "Organization",
         "name": "Freelance"
@@ -78,14 +78,14 @@
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
-            <div class="hero-tag">// DEVELOPER & DATA SCRAPER</div>
+            <div class="hero-tag">// WEB APP DEVELOPER</div>
             <h1 class="hero-title">
                 <span class="title-line" id="heroName">DENDY FAJAR K.</span>
-                <span class="title-subtitle" id="heroRole">Python Scraper & Web Developer</span>
+                <span class="title-subtitle" id="heroRole">Full Stack Web Developer</span>
             </h1>
             <p class="hero-description" id="heroBio">
-                Spesialis automasi data dan pengembangan web berbasis Linux. 
-                Fokus pada efisiensi, akurasi data, dan solusi yang scalable.
+                Spesialis pengembangan web backend dan frontend berbasis Linux. 
+                Fokus pada arsitektur modern, performa tinggi, dan solusi yang scalable.
             </p>
             <div class="hero-cta">
                 <a href="#projects" class="btn btn-primary">View Projects</a>
@@ -98,7 +98,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-number" data-target="50">0</div>
-                    <div class="stat-label">Data Sources</div>
+                    <div class="stat-label">APIs Integrated</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-number" data-target="1">0</div>
@@ -114,15 +114,15 @@
                     <span class="window-dot green"></span>
                 </div>
                 <div class="code-content">
-                    <pre><code><span class="code-keyword">import</span> <span class="code-module">requests</span>
-<span class="code-keyword">from</span> <span class="code-module">bs4</span> <span class="code-keyword">import</span> BeautifulSoup
+                    <pre><code><span class="code-keyword">from</span> <span class="code-module">fastapi</span> <span class="code-keyword">import</span> FastAPI
 
-<span class="code-keyword">def</span> <span class="code-function">scrape_data</span>(url):
-    response = requests.<span class="code-function">get</span>(url)
-    soup = BeautifulSoup(response.text)
-    <span class="code-keyword">return</span> soup.<span class="code-function">find_all</span>(<span class="code-string">'div'</span>)
+app = FastAPI()
 
-<span class="code-comment"># Magic happens here ✨</span></code></pre>
+<span class="code-keyword">@app</span>.<span class="code-function">get</span>(<span class="code-string">"/"</span>)
+<span class="code-keyword">def</span> <span class="code-function">read_root</span>():
+    <span class="code-keyword">return</span> {<span class="code-string">"message"</span>: <span class="code-string">"Hello, Web App!"</span>}
+
+<span class="code-comment"># Building modern backends ✨</span></code></pre>
                 </div>
             </div>
         </div>
@@ -138,19 +138,19 @@
             <div class="about-content">
                 <div class="about-text">
                     <p class="about-intro" id="aboutIntro">
-                        Saya adalah <strong>Dendy Fajar Kurniawan</strong>, seorang <strong>Python Developer</strong> 
-                        yang berspesialisasi dalam <strong>Web Scraping</strong> dan <strong>Automasi Data</strong>. 
+                        Saya adalah <strong>Dendy Fajar Kurniawan</strong>, seorang <strong>Full Stack Web Developer</strong> 
+                        yang berspesialisasi dalam membangun <strong>Web Apps</strong> modern dan interaktif. 
                         Menggunakan Linux Mint sebagai daily driver untuk development environment yang optimal.
                     </p>
                     <p id="aboutBody">
-                        Dengan keahlian dalam Playwright, FastAPI, dan Python automation, saya fokus membangun 
+                        Dengan keahlian dalam ekosistem frontend dan backend, saya fokus membangun 
                         solusi yang efisien dan scalable. Setiap project dirancang dengan perhatian pada 
-                        akurasi data, performa, dan maintainability.
+                        user experience, performa, dan arsitektur kode yang bersih.
                     </p>
                     <div class="about-highlights">
                         <div class="highlight-item">
                             <span class="highlight-icon">⚡</span>
-                            <span class="highlight-text">Fast & Efficient Scraping</span>
+                            <span class="highlight-text">High Performance Web Apps</span>
                         </div>
                         <div class="highlight-item">
                             <span class="highlight-icon">🐧</span>
@@ -158,7 +158,7 @@
                         </div>
                         <div class="highlight-item">
                             <span class="highlight-icon">🚀</span>
-                            <span class="highlight-text">Scalable Solutions</span>
+                            <span class="highlight-text">Modern Architecture</span>
                         </div>
                     </div>
                 </div>
@@ -204,7 +204,7 @@
         <h3 class="contact-subtitle">Ready to collaborate?</h3>
         <p class="contact-description">
             Saya selalu terbuka untuk proyek baru, kolaborasi, atau sekadar diskusi 
-            tentang teknologi dan data scraping.
+            tentang pengembangan web dan teknologi.
         </p>
         <div class="contact-methods">
             <a href="mailto:emailmu@example.com" class="contact-method" id="contactEmail">

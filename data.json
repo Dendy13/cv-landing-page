@@ -1,9 +1,9 @@
 {
   "nama": "Dendy Fajar Kurniawan",
   "panggilan": "Dendy",
-  "peran": "Python Scraper & Web Developer",
-  "bio": "Spesialis automasi data dan pengembangan web berbasis Linux. Fokus pada efisiensi, akurasi data, dan solusi yang scalable.",
-  "about": "Saya adalah Dendy Fajar Kurniawan, seorang Python Developer yang berspesialisasi dalam Web Scraping dan Automasi Data. Menggunakan Linux Mint sebagai daily driver untuk development environment yang optimal.\n\nDengan keahlian dalam Playwright, FastAPI, dan Python automation, saya fokus membangun solusi yang efisien dan scalable. Setiap project dirancang dengan perhatian pada akurasi data, performa, dan maintainability.",
+  "peran": "Full Stack Web Developer",
+  "bio": "Spesialis pengembangan web backend dan frontend berbasis Linux. Fokus pada arsitektur modern, performa tinggi, dan solusi yang scalable.",
+  "about": "Saya adalah Dendy Fajar Kurniawan, seorang Full Stack Web Developer yang berspesialisasi dalam membangun Web Apps modern dan interaktif. Menggunakan Linux Mint sebagai daily driver untuk development environment yang optimal.\n\nDengan keahlian dalam ekosistem frontend dan backend, saya fokus membangun solusi yang efisien dan scalable. Setiap project dirancang dengan perhatian pada user experience, performa, dan arsitektur kode yang bersih.",
   "kontak": {
     "email": "dendyfajark@gmail.com",
     "github": "https://github.com/Dendy13",
@@ -12,21 +12,21 @@
   },
   "skills": [
     {
-      "icon": "🐍",
-      "name": "Python",
-      "description": "Expert dalam Python untuk web scraping, automation, dan data processing",
+      "icon": "⚛️",
+      "name": "React & Next.js",
+      "description": "Expert dalam membangun antarmuka web modern dan interaktif",
       "level": 95
     },
     {
       "icon": "⚡",
-      "name": "FastAPI",
-      "description": "Advanced dalam membangun REST API yang cepat dan modern",
+      "name": "FastAPI & Node.js",
+      "description": "Advanced dalam membangun REST API dan backend services yang cepat",
       "level": 88
     },
     {
-      "icon": "🎭",
-      "name": "Playwright",
-      "description": "Advanced web automation dan scraping untuk aplikasi modern",
+      "icon": "🗄️",
+      "name": "Database Design",
+      "description": "Perancangan skema database SQL dan NoSQL yang efisien",
       "level": 90
     },
     {
@@ -36,26 +36,26 @@
       "level": 92
     },
     {
-      "icon": "📊",
-      "name": "Data Scraping",
-      "description": "Specialist dalam ekstraksi dan automasi pengumpulan data",
+      "icon": "🚀",
+      "name": "Full Stack Dev",
+      "description": "Specialist dalam arsitektur scalable dari frontend hingga backend",
       "level": 95
     }
   ],
   "projects": [
     {
-      "icon": "🛒",
-      "title": "E-commerce SaaS Scraper",
-      "description": "Platform automasi riset pasar yang mengambil data dari Tokopedia secara real-time menggunakan Playwright.",
-      "tags": ["Python", "Playwright", "FastAPI", "Data Engineering"],
-      "status": "70% Completed",
+      "icon": "💻",
+      "title": "Modern E-commerce WebApp",
+      "description": "Platform e-commerce full-stack dengan React, Next.js, dan FastAPI, menyediakan pengalaman belanja yang seamless.",
+      "tags": ["React", "Next.js", "FastAPI", "Full Stack"],
+      "status": "Production",
       "link": "#"
     },
     {
-      "icon": "🐧",
-      "title": "Linux Virtual Environment Manager",
-      "description": "Script untuk automasi setup venv dan library Python di distro berbasis Debian.",
-      "tags": ["Python", "Linux", "Bash", "Automation"],
+      "icon": "🌐",
+      "title": "Real-time Dashboard",
+      "description": "Aplikasi dashboard interaktif untuk visualisasi data dan monitoring performa sistem secara real-time.",
+      "tags": ["React", "WebSockets", "Node.js", "Analytics"],
       "status": "Production",
       "link": "#"
     }

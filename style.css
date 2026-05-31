@@ -976,6 +976,7 @@ section {
         position: static;
         transform: none;
         margin-top: 60px;
+        animation: fadeInUp 1s ease-out 0.5s forwards;
     }
     
     .code-window {
